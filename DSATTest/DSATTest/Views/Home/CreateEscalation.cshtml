@@ -1,0 +1,156 @@
+﻿<div ng-init="populateEscalations();">
+    <p class="error">{{loadingMessage}}{{error}}</p>
+    <div class="container">
+        <div class="row">
+
+            <div class="col-sm-12 col-md-12 col-lg-12">
+                <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#demo">Create New Request</button>
+
+                <div id="demo" class="collapse in">
+                    <hr>
+                    <form name="myForm" ng-submit="add(newEscalation)" autocomplete="off" style="font-size: small">
+                        <fieldset class="the-fieldset">
+                            <%--  <legend class="the-legend">Create New Request</legend>--%>
+
+                            <div class="form-group row">
+                                <label for="Type" class="col-sm-2 col-form-label">Escalation Type:</label>
+                                <div class="col-sm-4">
+                                    <input type="radio" ng-model="newEscalation.Type" value="BM">BM
+                        <input type="radio" ng-model="newEscalation.Type" value="BMM">BMM
+                        <input type="radio" ng-model="newEscalation.Type" value="EEM">EEM
+                        <input type="radio" ng-model="newEscalation.Type" value="EPM">EPM
+                      <%--  <input type="radio" ng-model="newEscalation.esclationType" value="DSA">DSA--%>
+                                </div>
+                                <div class="col-sm-6" ng-show="HeaderMissing == true">
+                                    <p ng-style="txtColor">{{UploadFileErrorMessage}}</p>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="uploadFile" class="col-sm-2 col-form-label">Upload UCM Escalation Text File:</label>
+                                <div class="col-sm-4">
+                                    <input ng-disabled="!newEscalation.Type" ng-model="fileupload" type="file" accept="text/plain" on-read-file="uploadFileContent($fileContent)" />
+                                </div>
+                                <div class="col-sm-2">
+                                    <button ng-disabled="!uploadenable" ng-click="validateUploadFile()" ng-model="newEscalation.UCMFile">Upload</button>
+                                </div>
+                            </div>
+                            <%-- <div class="form-group row">
+                        <div class="col-sm-12" ng-show="HeaderMissing == true">
+                            <p ng-style="txtColor">Warnning :{{UploadFileErrorMessage}}</p>
+                        </div>
+                    </div>--%>
+                            <div class="form-group row">
+                                <label for="EscalationSummary" class="col-sm-2 col-form-label">Give summary of pattern:</label>
+                                <div class="col-sm-10">
+                                    <textarea ng-disabled="!summary" rows="3" cols="100" id="summary" placeholder="Eg:BMM KW +american +airlines +vacations matching to search terms stripped of the token +vacations" ng-model="newEscalation.EscalationSummary" required />
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label for="splRequest" class="grey-text col-sm-2 col-form-label">Special request:</label>
+                                <div class="col-sm-2">
+                                    <input type="checkbox" name="BrandProtectionFlag" ng-model="newEscalation.BrandProtectionFlag">
+                                    Brand Protection
+                                </div>
+                                <div class="col-sm-4">
+                                    <input type="text" size="40" ng-disabled="!newEscalation.BrandProtectionFlag" placeholder="Eg: disney; disneyworld" ng-model="newEscalation.BrandProtection" ng-required='newEscalation.BrandProtectionFlag' />
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <div class="col-sm-2"></div>
+                                <div class="col-sm-2">
+                                    <input type="checkbox" name="AdvertiserCaredWordListFlag" ng-model="newEscalation.AdvertiserCaredWordListFlag">
+                                    Adv.Cared Word List
+                                </div>
+                                <div class="col-sm-4">
+                                    <input type="text" size="40" ng-disabled="!newEscalation.AdvertiserCaredWordListFlag" placeholder="Eg:promo|promos; coupon|coupons; free" ng-model="newEscalation.AdvertiserCaredWordList" ng-required='newEscalation.AdvertiserCaredWordListFlag' />
+                                </div>
+                                <div class="col-sm-2 text-left">
+                                    <input ng-disabled="!summary" type="submit" value="Submit" />
+                                    <input ng-disabled="!summary" type="reset" ng-click="resetForm()" value="Reset" />
+                                </div>
+                                <br />
+                            </div>
+                        </fieldset>
+                        <%-- <br />--%>
+                    </form>
+                    <hr>
+                </div>
+
+                <div ng-show="EscalationsFlagNo">
+                    <h4>There is no pending Escalations.</h4>
+                </div>
+
+                <div ng-show="EscalationsFlagYes">
+                    <%--<form>--%>
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon"><b class="fa fa-search">Search</b></div>
+                            <input type="text" class="form-control" placeholder="Search Results" ng-model="searchFish" style="float: left; width: 35%;">
+                        </div>
+                    </div>
+                    <h5>List of escalation in queue</h5>
+                </div>
+
+                <%--</form>--%>
+
+                <div class="table-responsive" ng-show="EscalationsFlagYes">
+                    <table class="table table-sm table-bordered table-striped table-wrapper" style="font-size: small">
+                        <thead>
+                            <tr>
+                                <th style="width: 5%"><a href="" ng-click="sortType='UCMNumber'; sortReverse = !sortReverse">UCM_Number </a></th>
+                                <th style="width: 5%"><a href="" ng-click="sortType='Requestor'; sortReverse = !sortReverse">Requestor</a></th>
+                                <th style="width: 5%"><a href="" ng-click="sortType='SubmitDate'; sortReverse = !sortReverse">SubmitDate</a></th>
+                                <th style="width: 25%"><a href="" ng-click="sortType='____________________________Escalation_Summary____________________________'; sortReverse = !sortReverse">____________________________Escalation_Summary____________________________</a></th>
+                                <th style="width: 5%"><a href="" ng-click="sortType='Type'; sortReverse = !sortReverse">EscalationType</a></th>
+                                <!--<td width=8%>Start_date</td>-->
+                                <!--<td width=8%>End_date</td>-->
+                                <th style="width: 5%"><a href="" ng-click="sortType='DevFixStatus'; sortReverse = !sortReverse">DevFixStatus</a></th>
+                                <th style="width: 13%"><a href="" ng-click="sortType='DevFixComments'; sortReverse = !sortReverse">DevFixComments</a></th>
+                                <th style="width: 5%"><a href="" ng-click="sortType='BrandProtectionFixStatus'; sortReverse = !sortReverse">BrandProtectionFixStatus</a></th>
+                                <th style="width: 5%"><a href="" ng-click="sortType='Adv.CaredWordListFixStatus'; sortReverse = !sortReverse">Adv.CaredWordListFixStatus</a></th>
+
+                                <th style="width: 5%"><a href="" ng-click="sortType='RequestedRefundAmount'; sortReverse = !sortReverse">RequestedRefundAmount</a></th>
+                                <th style="width: 5%"><a href="" ng-click="sortType='FinalSuggestedRefundAmount'; sortReverse = !sortReverse">FinalSuggestedRefundAmount</a></th>
+                                <!--<td width=8%>Created_date</td>-->
+                                <th style="width: 5%"><a href="" ng-click="sortType='Current_Status'; sortReverse = !sortReverse">Current_Status</a></th>
+                                <th style="width: 5%"><a href="" ng-click="sortType='Created_by'; sortReverse = !sortReverse">Updated_by</a></th>
+                                <!--<td width=8%>Created_date</td>-->
+                                <%--<th style="width: 10%"><a href="" ng-click="sortType='StartDate'; sortReverse = !sortReverse">StartDate</a></th>
+                            <th style="width:10%"><a href="" ng-click="sortType='EndDate'; sortReverse = !sortReverse">EndDate</a></th>--%>
+                                <th style="width: 7%">Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-ng-repeat="item in escalationList | orderBy:sortType:sortReverse | filter:searchFish">
+                                <td>{{item.UCMNumber}} </td>
+                                <td>{{item.Requestor}}</td>
+                                <td>{{item.SubmitDate | myDateFormat}}</td>
+                                <td>{{item.EscalationSummary}}</td>
+                                <td>{{item.Type}}</td>
+                                <td>{{item.DevFixStatusFlag}}</td>
+                                <td>{{item.DevFixStatus}}</td>
+                                <td>{{item.BrandProtectionFlag == null ? "NA" : item.BrandProtectionFlag }}</td>
+                                <td>{{item.AdvertiserCaredWordListFlag  == null ? "NA" : item.AdvertiserCaredWordListFlag }}</td>
+                                <td>{{item.RequestedSuggestedAmount}}</td>
+                                <td>{{item.FinalSuggestedAmount}}</td>
+                                <td>{{item.Current_Status}}</td>
+                                <td>{{item.UserName}}</td>
+                                <%--                            <td>{{item.StartDate | myDateFormat}}</td>
+                            <td>{{item.EndDate | myDateFormat}}</td>--%>
+                                <td>
+                                    <p data-ng-hide="item.Status != 'Created' || item.Created_by != loginby">
+                                        <a data-ng-click="DeleteItem(item)" href="javascript:;">Delete</a>
+                                    </p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
